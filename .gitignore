@@ -1,0 +1,15 @@
+/.Python
+
+# Ignore the files in bin
+/bin/*
+
+# Except for the Python files
+!/bin/*.py
+
+# Excluding some we really don't care about
+/bin/activate_this.py
+
+/include/
+/lib/
+__pycache__
+*.pyc
