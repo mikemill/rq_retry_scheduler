@@ -13,3 +13,6 @@
 /lib/
 __pycache__
 *.pyc
+
+/rq_retry_scheduler.egg-info
+/dist
