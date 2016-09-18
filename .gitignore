@@ -17,3 +17,6 @@ __pycache__
 /rq_retry_scheduler.egg-info
 /dist
 /build
+/.cache
+/.coverage
+/pip-selfcheck.json
