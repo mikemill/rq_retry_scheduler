@@ -14,6 +14,11 @@ setup(
     install_requires=['rq>=0.6.0'],
     zip_safe=False,
     platforms='any',
+    entry_points={
+        'console_scripts': [
+            'rqscheduler = rq_retry_scheduler.cli:main',
+        ],
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
