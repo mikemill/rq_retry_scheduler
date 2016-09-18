@@ -30,10 +30,14 @@ def get_arguments(args=None):
         default=os.environ.get('RQ_REDIS_PASSWORD'))
 
     parser.add_argument(
-        '--url', '-u',
+        '-u', '--url',
         default=os.environ.get('RQ_REDIS_URL'),
         help='URL describing Redis connection details. '
              'Overrides other connection arguments if supplied.')
+
+    parser.add_argument(
+        '-b', '--burst', action='store_true',
+        help='Burst mode. Move any jobs and quit')
 
     parser.add_argument(
         '-i', '--interval', help='Scheduler polling interval (in seconds)',
@@ -67,4 +71,4 @@ def main():
     setup_logging(args)
     connection = get_redis(args)
     scheduler = Scheduler(connection=connection, interval=args.interval)
-    scheduler.run()
+    scheduler.run(args.burst)

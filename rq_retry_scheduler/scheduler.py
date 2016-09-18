@@ -68,12 +68,16 @@ class Scheduler(object):
             queue.enqueue_job(job)
             self.remove_job(job.id)
 
-    def run(self):
+    def run(self, burst=False):
         self.log.info('Starting RQ Retry Scheduler..')
 
         try:
             while True:
                 self.enqueue_jobs()
+
+                if burst:
+                    break
+
                 time.sleep(self.interval)
         finally:
             pass

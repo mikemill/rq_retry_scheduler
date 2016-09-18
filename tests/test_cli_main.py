@@ -29,7 +29,7 @@ def test_setup_logging():
 
 
 def test_main(mock):
-    args = Namespace(url='redis://localhost/15', interval=5)
+    args = Namespace(url='redis://localhost/15', interval=5, burst=False)
 
     mock.patch.object(scheduler, 'get_arguments', return_value=args)
     init = mock.spy(Scheduler, '__init__')
@@ -37,7 +37,7 @@ def test_main(mock):
 
     scheduler.main()
 
-    assert run.called
+    run.assert_called_with(False)
 
     assert init.call_args[1]['interval'] == args.interval
 
@@ -49,3 +49,10 @@ def test_get_arguments():
     assert args.port == 6379
     assert args.url is None
     assert args.interval == 10.0
+    assert args.burst is False
+
+
+def test_burst_flag():
+    fake_arguments = ['-b']
+    args = scheduler.get_arguments(fake_arguments)
+    assert args.burst is True
