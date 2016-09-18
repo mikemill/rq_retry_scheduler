@@ -10,6 +10,3 @@ install:
 script: make test
 
 services: redis
-
-notifications:
-    email: false
