@@ -1,0 +1,4 @@
+# Development pip requirements
+rq
+pytest
+pytest-pep8
