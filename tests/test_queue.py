@@ -98,3 +98,17 @@ def test_enqueue_job_in(mock, q, connection):
 
     assert 'enqueue_at' in job.meta
     assert job.meta['enqueue_at'] == dt + td
+
+
+def test_schedule_job(mock, q, connection):
+    zadd = mock.patch.object(connection, '_zadd')
+
+    job = Job.create(target_function, connection=connection)
+
+    save = mock.patch.object(job, 'save')
+    dt = datetime.utcnow()
+
+    q.schedule_job(job, dt)
+
+    zadd.assert_called_with(q.scheduler_jobs_key, util.to_unix(dt), job.id)
+    save.assert_called()
