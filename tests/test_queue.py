@@ -23,7 +23,8 @@ def test_job_key():
 
 
 def test_enqueue_at(mock, q):
-    enqueue = mock.patch.object(q, 'enqueue')
+    ret_value = "unittest"
+    enqueue = mock.patch.object(q, 'enqueue', return_value=ret_value)
 
     dt = datetime(2016, 1, 1, 0, 0, 0)
 
@@ -31,7 +32,9 @@ def test_enqueue_at(mock, q):
     kwargs = {'are': 'cool'}
     meta = {'enqueue_at': dt}
 
-    q.enqueue_at(dt, target_function, *args, **kwargs)
+    j = q.enqueue_at(dt, target_function, *args, **kwargs)
+
+    assert j == ret_value
 
     enqueue.assert_called_with(
         target_function, args=args, kwargs=kwargs, meta=meta)
@@ -43,20 +46,24 @@ def test_enqueue_in(mock, q):
 
     td = timedelta(minutes=5)
 
-    enqueue = mock.patch.object(q, 'enqueue')
+    ret_value = "unittest"
+    enqueue = mock.patch.object(q, 'enqueue', return_value=ret_value)
 
     args = 'unit', 'tests'
     kwargs = {'are': 'cool'}
     meta = {'enqueue_at': dt + td}
 
-    q.enqueue_in(td, target_function, *args, **kwargs)
+    j = q.enqueue_in(td, target_function, *args, **kwargs)
+
+    assert j == ret_value
 
     enqueue.assert_called_with(
         target_function, args=args, kwargs=kwargs, meta=meta)
 
 
 def test_enqueue_job_at(mock, q, connection):
-    enqueue = mock.patch.object(q, 'enqueue_job')
+    ret_value = "unittest"
+    enqueue = mock.patch.object(q, 'enqueue_job', return_value=ret_value)
 
     dt = datetime(2016, 1, 1, 0, 0, 0)
 
@@ -68,7 +75,9 @@ def test_enqueue_job_at(mock, q, connection):
 
     assert 'enqueue_at' not in job.meta
 
-    q.enqueue_job_at(dt, job)
+    j = q.enqueue_job_at(dt, job)
+
+    assert j == ret_value
 
     enqueue.assert_called_with(job)
 
@@ -82,7 +91,8 @@ def test_enqueue_job_in(mock, q, connection):
 
     td = timedelta(minutes=5)
 
-    enqueue = mock.patch.object(q, 'enqueue_job')
+    ret_value = 'unittest'
+    enqueue = mock.patch.object(q, 'enqueue_job', return_value=ret_value)
 
     args = 'unit', 'tests'
     kwargs = {'are': 'cool'}
@@ -92,7 +102,9 @@ def test_enqueue_job_in(mock, q, connection):
 
     assert 'enqueue_at' not in job.meta
 
-    q.enqueue_job_in(td, job)
+    j = q.enqueue_job_in(td, job)
+
+    assert j == ret_value
 
     enqueue.assert_called_with(job)
 
@@ -112,3 +124,29 @@ def test_schedule_job(mock, q, connection):
 
     zadd.assert_called_with(q.scheduler_jobs_key, util.to_unix(dt), job.id)
     save.assert_called()
+
+
+def test_enqueue_job(mock, q, connection):
+    dt = datetime.utcnow()
+
+    job = Job.create(target_function, connection=connection)
+    job.meta['enqueue_at'] = dt
+
+    schedule = mock.patch.object(q, 'schedule_job')
+
+    j = q.enqueue_job(job)
+
+    assert j == job
+    schedule.assert_called_with(job, dt)
+
+
+def test_enqueue_job_no_time(mock, q, connection):
+    job = Job.create(target_function, connection=connection)
+
+    enqueue = mock.patch.object(queue.rq.Queue, 'enqueue_job')
+    schedule = mock.patch.object(q, 'schedule_job')
+
+    q.enqueue_job(job)
+
+    enqueue.assert_called_with(job, None, False)
+    assert not schedule.called
