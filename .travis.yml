@@ -10,3 +10,8 @@ install:
 script: make test
 
 services: redis
+
+notifications:
+    email:
+        on_success: change
+        on_failure: change
