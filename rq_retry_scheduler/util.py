@@ -1,5 +1,4 @@
 import calendar
-from datetime import datetime
 
 
 def to_unix(dt):
