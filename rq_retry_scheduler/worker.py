@@ -2,8 +2,6 @@ from datetime import timedelta
 import logging
 from rq import Worker
 
-from .queue import Queue
-
 logger = logging.getLogger('rq:retryscheduler:worker')
 logger.setLevel('DEBUG')
 logger.addHandler(logging.StreamHandler())
