@@ -38,17 +38,21 @@ class Scheduler(object):
 
         return self._queue_cache[queue_name]
 
+    def get_job(self, job_id):
+        if isinstance(job_id, bytes):
+            job_id = job_id.decode('utf-8')
+
+        return self.job_class.fetch(job_id, connection=self.connection)
+
     def get_jobs_to_queue(self, score):
         job_ids = self.connection.zrangebyscore(
             self.scheduler_jobs_key, 0, score)
 
         for job_id in job_ids:
             try:
-                job_id = job_id.decode('utf-8')
                 self.log.debug(
                     "Job {} is ready to be put in the queue".format(job_id))
-                job = self.job_class.fetch(job_id, connection=self.connection)
-                yield job
+                yield self.get_job(job_id)
             except NoSuchJobError:
                 self.remove_job(job_id)
 
