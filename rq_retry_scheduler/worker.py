@@ -8,6 +8,7 @@ logger = logging.getLogger('rq:retryscheduler:worker')
 logger.setLevel('DEBUG')
 logger.addHandler(logging.StreamHandler())
 
+
 class Worker(Worker):
 
     retry_delays = {

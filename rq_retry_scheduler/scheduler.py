@@ -18,9 +18,9 @@ class Scheduler(object):
     scheduler_jobs_key = scheduler_key + ':scheduled_jobs'
 
     _queue_cache = {}
-    
+
     def __init__(self, job_class=None, queue_class=None, interval=1,
-                    connection=None):
+                 connection=None):
         self.interval = interval
         self.log = logger
         self.connection = resolve_connection(connection)
@@ -33,7 +33,7 @@ class Scheduler(object):
 
     def get_queue(self, queue_name):
         if queue_name not in self._queue_cache:
-           self. _queue_cache[queue_name] = self.queue_class(
+            self. _queue_cache[queue_name] = self.queue_class(
                 queue_name, connection=self.connection)
 
         return self._queue_cache[queue_name]
