@@ -139,3 +139,11 @@ def test_run(scheduler, mock):
         scheduler.run()
 
     assert enqueue_jobs.call_count == len(side_effects)
+
+
+def test_run_burst(scheduler, mock):
+    sleep = mock.patch.object(time, 'sleep')
+
+    scheduler.run(True)
+
+    assert not sleep.called
