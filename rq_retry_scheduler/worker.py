@@ -3,8 +3,6 @@ import logging
 from rq import Worker
 
 logger = logging.getLogger('rq:retryscheduler:worker')
-logger.setLevel('DEBUG')
-logger.addHandler(logging.StreamHandler())
 
 
 class Worker(Worker):

@@ -40,3 +40,19 @@ def scheduler(connection):
         yield s
     finally:
         s.current_time = datetime.utcnow
+
+
+@pytest.yield_fixture
+def worker(connection):
+    def blackhole(job, *args, **kwargs):
+        """For unit tests we don't want it going to default behavior"""
+        return False
+
+    w = Worker(
+        'unittest', connection=connection, queue_class=Queue,
+        exception_handlers=blackhole)
+
+    try:
+        yield w
+    finally:
+        pass
