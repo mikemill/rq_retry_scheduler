@@ -1,5 +1,8 @@
+from datetime import datetime
 import pytest
 from redis import StrictRedis
+
+from rq_retry_scheduler import Queue, Worker, Scheduler
 
 
 @pytest.fixture(scope='session')
@@ -19,3 +22,21 @@ def connection(redis_db_num):
         yield conn
     finally:
         conn.flushall()
+
+
+@pytest.yield_fixture
+def queue(connection):
+    q = Queue('unittest', connection=connection)
+    try:
+        yield q
+    finally:
+        q.current_time = datetime.utcnow
+
+
+@pytest.yield_fixture
+def scheduler(connection):
+    s = Scheduler('unittest', connection=connection)
+    try:
+        yield s
+    finally:
+        s.current_time = datetime.utcnow

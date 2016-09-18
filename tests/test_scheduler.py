@@ -31,15 +31,6 @@ def target_function(*args, **kwargs):
     pass
 
 
-@pytest.yield_fixture
-def scheduler(connection):
-    s = Scheduler('unittest', connection=connection)
-    try:
-        yield s
-    finally:
-        s.current_time = datetime.utcnow
-
-
 def test_get_queue(connection):
     s = Scheduler('unitest', queue_class=MockQueue, connection=connection)
 
