@@ -14,7 +14,7 @@ class Queue(rq.Queue):
     options.
     """
     scheduler_jobs_key = 'rq:retryscheduler:scheduled_jobs'
-    current_time = datetime.utcnow
+    current_time = datetime.utcnow  # This is to make it easy to test
 
     def schedule_job(self, job, enqueue_dt):
         logger.info('Queuing job {0:s} to run at {1:s}'.format(

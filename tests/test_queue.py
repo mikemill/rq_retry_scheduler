@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from rq.job import Job
 
 from rq_retry_scheduler import queue
 
@@ -50,3 +51,52 @@ def test_enqueue_in(mock, connection):
 
     enqueue.assert_called_with(
         target_function, args=args, kwargs=kwargs, meta=meta)
+
+
+def test_enqueue_job_at(mock, connection):
+    q = queue.Queue('unittest', connection=connection)
+
+    enqueue = mock.patch.object(q, 'enqueue_job')
+
+    dt = datetime(2016, 1, 1, 0, 0, 0)
+
+    args = 'unit', 'tests'
+    kwargs = {'are': 'cool'}
+
+    job = Job.create(
+        target_function, args=args, kwargs=kwargs, connection=connection)
+
+    assert 'enqueue_at' not in job.meta
+
+    q.enqueue_job_at(dt, job)
+
+    enqueue.assert_called_with(job)
+
+    assert 'enqueue_at' in job.meta
+    assert job.meta['enqueue_at'] == dt
+
+
+def test_enqueue_job_in(mock, connection):
+    q = queue.Queue('unittest', connection=connection)
+
+    dt = datetime.utcnow().replace(microsecond=0)
+    q.current_time = lambda: dt
+
+    td = timedelta(minutes=5)
+
+    enqueue = mock.patch.object(q, 'enqueue_job')
+
+    args = 'unit', 'tests'
+    kwargs = {'are': 'cool'}
+
+    job = Job.create(
+        target_function, args=args, kwargs=kwargs, connection=connection)
+
+    assert 'enqueue_at' not in job.meta
+
+    q.enqueue_job_in(td, job)
+
+    enqueue.assert_called_with(job)
+
+    assert 'enqueue_at' in job.meta
+    assert job.meta['enqueue_at'] == dt + td
