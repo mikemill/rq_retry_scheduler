@@ -26,11 +26,11 @@ class Queue(rq.Queue):
 
     def enqueue_at(self, scheduled_at, func, *args, **kwargs):
         meta = {'enqueue_at': scheduled_at}
-        return super().enqueue(func, args=args, kwargs=kwargs, meta=meta)
+        return self.enqueue(func, args=args, kwargs=kwargs, meta=meta)
 
     def enqueue_in(self, time_delta, func, *args, **kwargs):
         meta = {'enqueue_at': datetime.utcnow() + time_delta}
-        return super().enqueue(func, args=args, kwargs=kwargs, meta=meta)
+        return self.enqueue(func, args=args, kwargs=kwargs, meta=meta)
 
     def enqueue_job_at(self, scheduled_at, job):
         job.meta['enqueue_at'] = scheduled_at
