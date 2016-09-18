@@ -1,7 +1,13 @@
 from datetime import datetime, timedelta
 from rq.job import Job
+import pytest
 
-from rq_retry_scheduler import queue
+from rq_retry_scheduler import queue, util
+
+
+@pytest.fixture
+def q(connection):
+    return queue.Queue('unittest', connection=connection)
 
 
 def target_function(*args, **kwargs):
@@ -16,9 +22,7 @@ def test_job_key():
     assert queue.Queue.scheduler_jobs_key == 'rq:retryscheduler:scheduled_jobs'
 
 
-def test_enqueue_at(mock, connection):
-    q = queue.Queue('unittest', connection=connection)
-
+def test_enqueue_at(mock, q):
     enqueue = mock.patch.object(q, 'enqueue')
 
     dt = datetime(2016, 1, 1, 0, 0, 0)
@@ -33,9 +37,7 @@ def test_enqueue_at(mock, connection):
         target_function, args=args, kwargs=kwargs, meta=meta)
 
 
-def test_enqueue_in(mock, connection):
-    q = queue.Queue('unittest', connection=connection)
-
+def test_enqueue_in(mock, q):
     dt = datetime.utcnow().replace(microsecond=0)
     q.current_time = lambda: dt
 
@@ -53,9 +55,7 @@ def test_enqueue_in(mock, connection):
         target_function, args=args, kwargs=kwargs, meta=meta)
 
 
-def test_enqueue_job_at(mock, connection):
-    q = queue.Queue('unittest', connection=connection)
-
+def test_enqueue_job_at(mock, q, connection):
     enqueue = mock.patch.object(q, 'enqueue_job')
 
     dt = datetime(2016, 1, 1, 0, 0, 0)
@@ -76,9 +76,7 @@ def test_enqueue_job_at(mock, connection):
     assert job.meta['enqueue_at'] == dt
 
 
-def test_enqueue_job_in(mock, connection):
-    q = queue.Queue('unittest', connection=connection)
-
+def test_enqueue_job_in(mock, q, connection):
     dt = datetime.utcnow().replace(microsecond=0)
     q.current_time = lambda: dt
 
