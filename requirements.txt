@@ -1,6 +1,6 @@
 # Development pip requirements
 rq
-pytest
+pytest>=3.0.2
 pytest-pep8
 pytest-cov
 pytest-mock
