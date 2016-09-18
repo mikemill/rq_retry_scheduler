@@ -5,9 +5,13 @@ import pytest
 from rq_retry_scheduler import queue, util
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def q(connection):
-    return queue.Queue('unittest', connection=connection)
+    q = queue.Queue('unittest', connection=connection)
+    try:
+        yield q
+    finally:
+        q.current_time = datetime.utcnow
 
 
 def target_function(*args, **kwargs):

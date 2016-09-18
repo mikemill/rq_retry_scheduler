@@ -16,8 +16,7 @@ logger = logging.getLogger('rq:retryscheduler:scheduler')
 class Scheduler(object):
     scheduler_key = 'rq:retryscheduler'
     scheduler_jobs_key = scheduler_key + ':scheduled_jobs'
-
-    _queue_cache = {}
+    current_time = datetime.utcnow  # To make unit testing easier
 
     def __init__(self, job_class=None, queue_class=None, interval=1,
                  connection=None):
@@ -26,6 +25,7 @@ class Scheduler(object):
         self.connection = resolve_connection(connection)
         self.job_class = job_class if job_class is not None else Job
         self.queue_class = queue_class if queue_class is not None else Queue
+        self._queue_cache = {}
 
     def remove_job(self, job_id):
         self.log.debug("Removing job {} from scheduled list".format(job_id))
@@ -33,7 +33,7 @@ class Scheduler(object):
 
     def get_queue(self, queue_name):
         if queue_name not in self._queue_cache:
-            self. _queue_cache[queue_name] = self.queue_class(
+            self._queue_cache[queue_name] = self.queue_class(
                 queue_name, connection=self.connection)
 
         return self._queue_cache[queue_name]
@@ -59,7 +59,7 @@ class Scheduler(object):
     def enqueue_jobs(self):
         self.log.info('Checking for scheduled jobs...')
 
-        jobs = self.get_jobs_to_queue(to_unix(datetime.utcnow()))
+        jobs = self.get_jobs_to_queue(to_unix(self.current_time()))
 
         for job in jobs:
             self.log.info(
