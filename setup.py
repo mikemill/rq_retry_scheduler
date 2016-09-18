@@ -3,10 +3,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='rq-retry-scheduler',
-    version='0.1.0a',
+    version='0.1.0a2',
     url='https://github.com/mikemill/rq_retry_scheduler',
     description='RQ Retry and Scheduler',
-    long_description=__doc__,
+    long_description=open('README.rst').read(),
     author='Michael Miller',
     author_email='mikemill@gmail.com',
     packages=find_packages(exclude=['*tests*']),
