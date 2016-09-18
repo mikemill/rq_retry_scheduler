@@ -9,7 +9,7 @@ from rq.utils import ColorizingStreamHandler
 from rq_retry_scheduler import Scheduler
 
 
-def main():
+def get_arguments(args=None):
     parser = argparse.ArgumentParser(description='RQ Retry Scheduler')
 
     # Redis connection
@@ -39,13 +39,19 @@ def main():
         '-i', '--interval', help='Scheduler polling interval (in seconds)',
         default=10.0, type=float)
 
-    args = parser.parse_args()
+    return parser.parse_args(args)
 
+
+def get_redis(args):
     if args.url:
         connection = StrictRedis.from_url(args.url)
     else:
         connection = StrictRedis(args.host, args.port, args.db, args.password)
 
+    return connection
+
+
+def setup_logging(args):
     logger = logging.getLogger('rq:retryscheduler:scheduler')
     logger.setLevel('INFO')
     formatter = logging.Formatter(fmt='%(asctime)s %(message)s',
@@ -53,10 +59,12 @@ def main():
     handler = ColorizingStreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    return logger
 
+
+def main():
+    args = get_arguments()
+    setup_logging(args)
+    connection = get_redis(args)
     scheduler = Scheduler(connection=connection, interval=args.interval)
     scheduler.run()
-
-
-if __name__ == '__main__':
-    main()
