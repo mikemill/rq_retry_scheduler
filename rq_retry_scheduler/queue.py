@@ -14,6 +14,7 @@ class Queue(rq.Queue):
     options.
     """
     scheduler_jobs_key = 'rq:retryscheduler:scheduled_jobs'
+    current_time = datetime.utcnow
 
     def schedule_job(self, job, enqueue_dt):
         logger.info('Queuing job {0:s} to run at {1:s}'.format(
@@ -29,7 +30,7 @@ class Queue(rq.Queue):
         return self.enqueue(func, args=args, kwargs=kwargs, meta=meta)
 
     def enqueue_in(self, time_delta, func, *args, **kwargs):
-        meta = {'enqueue_at': datetime.utcnow() + time_delta}
+        meta = {'enqueue_at': self.current_time() + time_delta}
         return self.enqueue(func, args=args, kwargs=kwargs, meta=meta)
 
     def enqueue_job_at(self, scheduled_at, job):
@@ -37,7 +38,7 @@ class Queue(rq.Queue):
         return self.enqueue_job(job)
 
     def enqueue_job_in(self, time_delta, job):
-        job.meta['enqueue_at'] = datetime.utcnow() + time_delta
+        job.meta['enqueue_at'] = self.current_time() + time_delta
         return self.enqueue_job(job)
 
     def enqueue_job(self, job, pipeline=None, at_front=False):

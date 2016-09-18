@@ -36,13 +36,9 @@ def test_enqueue_in(mock, connection):
     q = queue.Queue('unittest', connection=connection)
 
     dt = datetime.utcnow().replace(microsecond=0)
+    q.current_time = lambda: dt
+
     td = timedelta(minutes=5)
-
-    # Mock the entire datetime import
-    dt_mock = mock.patch.object(queue, 'datetime', autospec=True)
-
-    # And now mock the mock'd class
-    mock.patch.object(dt_mock, 'utcnow', return_value=dt)
 
     enqueue = mock.patch.object(q, 'enqueue')
 
