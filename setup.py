@@ -1,12 +1,22 @@
 from setuptools import setup, find_packages
 
+try:
+    import pypandoc
+
+    def long_description():
+        return pypandoc.convert_file('README.md', 'rst')
+
+except ImportError:
+    def long_description():
+        return ''
+
 
 setup(
     name='rq-retry-scheduler',
     version='0.1.0b1',
     url='https://github.com/mikemill/rq_retry_scheduler',
     description='RQ Retry and Scheduler',
-    long_description=open('README.rst').read(),
+    long_description=long_description(),
     author='Michael Miller',
     author_email='mikemill@gmail.com',
     packages=find_packages(exclude=['*tests*']),
