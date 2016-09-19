@@ -8,9 +8,9 @@ logger = logging.getLogger('rq:retryscheduler:worker')
 class Worker(Worker):
 
     retry_delays = {
-        1: timedelta(seconds=1),
-        2: timedelta(seconds=5),
-        3: timedelta(seconds=10),
+        1: timedelta(minutes=1),
+        2: timedelta(minutes=5),
+        3: timedelta(minutes=10),
     }
 
     def __init__(self, *args, **kwargs):
