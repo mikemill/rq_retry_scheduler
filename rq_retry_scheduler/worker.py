@@ -1,13 +1,14 @@
 from datetime import timedelta
+from functools import partial
 import logging
-from rq import Worker
+import rq
 
 from .queue import Queue
 
 logger = logging.getLogger('rq.worker')
 
 
-class Worker(Worker):
+class Worker(rq.Worker):
 
     retry_delays = {
         1: timedelta(minutes=1),
@@ -20,9 +21,11 @@ class Worker(Worker):
 
         if queue_class is None or not issubclass(queue_class, Queue):
             queue_class = Queue
+            q = partial(Queue, connection=connection)
 
-            queues = [Queue(queue.name, connection=connection)
-                      for queue in queues]
+            queues = [
+                q(queue.name) if isinstance(queue, rq.Queue) else queue
+                for queue in rq.utils.ensure_list(queues)]
 
         super().__init__(queues, *args, queue_class=queue_class,
                          connection=connection, **kwargs)
