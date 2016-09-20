@@ -50,6 +50,8 @@ def test_cli_arguments(connection):
     w = Worker(queues, connection=connection, queue_class=rq.Queue)
 
     assert issubclass(w.queue_class, Queue)
+    assert len(w.queues) == len(queues)
+
     for queue in w.queues:
         assert isinstance(queue, Queue), queue.name
 
@@ -63,3 +65,30 @@ def test_class_override_inherited(connection):
     w = Worker(['unittest'], queue_class=UnittestQueue, connection=connection)
 
     assert w.queue_class == UnittestQueue
+    assert len(w.queues) == 1
+
+
+def test_queue_strings(connection):
+    """Ensure that the worker can take an iterable of strings"""
+
+    queues = ['unittest']
+    w = Worker(queues, queue_class=rq.Queue, connection=connection)
+
+    assert issubclass(w.queue_class, Queue)
+    assert len(w.queues) == len(queues)
+
+    for queue in w.queues:
+        assert isinstance(queue, Queue), queue.name
+
+
+def test_queue_string(connection):
+    """Ensure that the worker can take a string"""
+
+    queues = 'unittest'
+    w = Worker(queues, queue_class=rq.Queue, connection=connection)
+
+    assert issubclass(w.queue_class, Queue)
+    assert len(w.queues) == 1
+
+    for queue in w.queues:
+        assert isinstance(queue, Queue), queue.name
