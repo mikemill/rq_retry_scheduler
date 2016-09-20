@@ -1,4 +1,6 @@
-from rq_retry_scheduler import Queue
+import rq
+
+from rq_retry_scheduler import Queue, Worker
 
 
 def noop_target_function(*args, **kwargs):
@@ -11,6 +13,7 @@ def fail_target_function(*args, **kwargs):
 
 def test_init(worker):
     assert worker.exc_handler in worker._exc_handlers
+    assert issubclass(worker.queue_class, Queue)
 
 
 def test_exc_handler(mock, worker, queue):
@@ -28,3 +31,35 @@ def test_exc_handler(mock, worker, queue):
     ret = worker.exc_handler(job, None, None, None)
     assert ret is True
     assert not enqueue.called
+
+
+def test_cli_arguments(connection):
+    """
+    The rq script populates the queue_class and instantiates the queues
+    with the RQ queue class.
+
+    Make sure that our worker changes the queue class and updates the
+    queues to be of the new queue class
+    """
+    queue_names = ['unittest1', 'unittest2']
+    queues = [
+        rq.Queue(queue_name, connection=connection)
+        for queue_name in queue_names
+    ]
+
+    w = Worker(queues, connection=connection, queue_class=rq.Queue)
+
+    assert issubclass(w.queue_class, Queue)
+    for queue in w.queues:
+        assert isinstance(queue, Queue), queue.name
+
+
+def test_class_override_inherited(connection):
+    """Test that passing a subclass of Queue isn't overwritten by the worker"""
+
+    class UnittestQueue(Queue):
+        pass
+
+    w = Worker(['unittest'], queue_class=UnittestQueue, connection=connection)
+
+    assert w.queue_class == UnittestQueue

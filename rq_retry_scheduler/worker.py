@@ -2,7 +2,9 @@ from datetime import timedelta
 import logging
 from rq import Worker
 
-logger = logging.getLogger('rq:retryscheduler:worker')
+from .queue import Queue
+
+logger = logging.getLogger('rq.worker')
 
 
 class Worker(Worker):
@@ -13,8 +15,17 @@ class Worker(Worker):
         3: timedelta(minutes=10),
     }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, queues, queue_class=None, connection=None,
+                 *args, **kwargs):
+
+        if queue_class is None or not issubclass(queue_class, Queue):
+            queue_class = Queue
+
+            queues = [Queue(queue.name, connection=connection)
+                      for queue in queues]
+
+        super().__init__(queues, *args, queue_class=queue_class,
+                         connection=connection, **kwargs)
 
         self.log = logger
         self.push_exc_handler(self.exc_handler)
