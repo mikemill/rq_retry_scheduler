@@ -69,7 +69,7 @@ class Queue(rq.Queue):
         return self.connection.zrank(
             self.scheduler_jobs_key, job_id) is not None
 
-    def remove_job(self, job):
+    def unschedule_job(self, job):
         try:
             job_id = job.id
         except AttributeError:
