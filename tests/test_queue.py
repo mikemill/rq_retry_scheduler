@@ -174,3 +174,21 @@ def test_scheduled_jobs(queue):
 
     for qjob, job in job_args:
         assert qjob.id == job.id
+
+
+def test_unschedule_job(queue):
+    td = timedelta(seconds=1)
+    job1 = queue.enqueue_in(td, target_function)
+    job2 = queue.enqueue_in(td, target_function)
+
+    assert job1 in queue
+    assert job2 in queue
+
+    queue.unschedule_job(job1)
+
+    assert job1 not in queue
+    assert job2 in queue
+
+    queue.unschedule_job(job2.id)
+
+    assert job2 not in queue

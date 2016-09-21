@@ -65,5 +65,14 @@ class Queue(rq.Queue):
             job_id = job.id
         except AttributeError:
             job_id = job
+
         return self.connection.zrank(
             self.scheduler_jobs_key, job_id) is not None
+
+    def unschedule_job(self, job):
+        try:
+            job_id = job.id
+        except AttributeError:
+            job_id = job
+
+        self.connection.zrem(self.scheduler_jobs_key, job_id)
