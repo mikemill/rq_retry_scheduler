@@ -18,6 +18,14 @@ The `rq_retry_scheduler.Queue` class can be used as a drop in replacement for `r
 
 Additionally, two other methods are available `enqueue_job_at` and `enqueue_job_in` which work like the above methods but take a `rq.Job` object as the paramter.
 
+### Getting list of jobs
+
+`Queue.scheduled_jobs` is a generator that produces the jobs that are currently scheduled.
+
+### Checking if a job is scheduled
+
+You can check if a job or job id is currently scheduled.  Example: `job in queue`
+
 ## Scheduler
 
 In order to move jobs from the schedule queue into the proper RQ queue a scheduler needs to be ran.
