@@ -150,10 +150,13 @@ def test_enqueue_job_no_time(mock, queue, connection):
 def test_contains(queue, connection):
     job = Job.create(target_function, connection=connection)
     assert job not in queue
+    assert job.id not in queue
+    assert 'foobar' not in queue
 
     queue.enqueue_job_in(timedelta(seconds=1), job)
     assert job in queue
     assert job.id in queue
+    assert 'foobar' not in queue
 
 
 def test_scheduled_jobs(queue):
