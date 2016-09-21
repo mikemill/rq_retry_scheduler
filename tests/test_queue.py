@@ -145,3 +145,29 @@ def test_enqueue_job_no_time(mock, queue, connection):
 
     enqueue.assert_called_with(job, None, False)
     assert not schedule.called
+
+
+def test_contains(queue, connection):
+    job = Job.create(target_function, connection=connection)
+    assert job not in queue
+
+    queue.enqueue_job_in(timedelta(seconds=1), job)
+    assert job in queue
+    assert job.id in queue
+
+
+def test_scheduled_jobs(queue):
+    args = list(range(0, 10))
+
+    queued_jobs = [
+        queue.enqueue_in(timedelta(seconds=arg), target_function, arg)
+        for arg in args]
+
+    jobs = list(queue.scheduled_jobs())
+
+    assert len(jobs) == len(args)
+
+    job_args = zip(queued_jobs, jobs)
+
+    for qjob, job in job_args:
+        assert qjob.id == job.id

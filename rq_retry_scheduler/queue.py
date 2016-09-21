@@ -50,3 +50,20 @@ class Queue(rq.Queue):
         self.schedule_job(job, enqueue_at)
 
         return job
+
+    def scheduled_jobs(self):
+        num_jobs = self.connection.zcard(self.scheduler_jobs_key)
+        job_ids = self.connection.zrange(
+            self.scheduler_jobs_key, 0, num_jobs)
+
+        for job_id in job_ids:
+            yield self.job_class.fetch(
+                job_id.decode('utf-8'), connection=self.connection)
+
+    def __contains__(self, job):
+        try:
+            job_id = job.id
+        except AttributeError:
+            job_id = job
+        return self.connection.zrank(
+            self.scheduler_jobs_key, job_id) is not None
