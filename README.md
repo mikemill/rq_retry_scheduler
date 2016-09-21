@@ -26,6 +26,10 @@ Additionally, two other methods are available `enqueue_job_at` and `enqueue_job_
 
 You can check if a job or job id is currently scheduled.  Example: `job in queue`
 
+### Unscheduling jobs
+
+You can unschedule jobs with `Queue.remove_job`.  This removes the job from the scheduler queue but does not remove it from RQ.
+
 ## Scheduler
 
 In order to move jobs from the schedule queue into the proper RQ queue a scheduler needs to be ran.
