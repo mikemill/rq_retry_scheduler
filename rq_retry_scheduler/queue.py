@@ -51,6 +51,20 @@ class Queue(rq.Queue):
 
         return job
 
+    def repeat_job(self, job, interval, max_runs=None):
+        job.meta.update({
+            'interval': interval,
+            'max_runs': max_runs,
+            'run_count': 0,
+        })
+
+        if job not in self:
+            self.enqueue_job_in(interval, job)
+        else:
+            job.save()
+
+        return job
+
     def scheduled_jobs(self):
         num_jobs = self.connection.zcard(self.scheduler_jobs_key)
         job_ids = self.connection.zrange(

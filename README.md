@@ -30,6 +30,18 @@ You can check if a job or job id is currently scheduled.  Example: `job in queue
 
 You can unschedule jobs with `Queue.remove_job`.  This removes the job from the scheduler queue but does not remove it from RQ.
 
+### Repeating jobs
+
+Once a job has been enqueued you can set it to repeat with `Queue.repeat` which takes the job and a `datetime.timedelta` object.  Additionally you can
+pass a `max_runs` value to limit the number of times it will repeat.
+
+If the job is not already in the queue it will be enqueued at the given interval.
+
+In order to ensure that job results cleanup doesn't remove the job (thus breaking the repetition) the job is copied into a new job.
+The parent job can be accessed via `Job.parent` for the repeated jobs.
+
+Due to how the jobs are put into the work queues the maximum frequency is controlled by the scheduler's interval.
+
 ## Scheduler
 
 In order to move jobs from the schedule queue into the proper RQ queue a scheduler needs to be ran.

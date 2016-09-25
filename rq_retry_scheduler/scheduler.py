@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 import logging
 import time
@@ -56,17 +57,80 @@ class Scheduler(object):
             except NoSuchJobError:
                 self.remove_job(job_id)
 
+    def delay_job(self, job, time_delta):
+        amount = int(time_delta.total_seconds())
+        self.connection.zincrby(self.scheduler_jobs_key, job.id, amount)
+
+    def should_repeat_job(self, job):
+        max_runs = job.meta['max_runs']
+        run_count = job.meta['run_count']
+
+        return max_runs is None or max_runs > run_count
+
+    def repeat_job_id(self, job):
+        return 'repeat_{}_{}'.format(job.id, job.meta.get('run_count', 0) + 1)
+
+    def make_repeat_job(self, job):
+        meta = deepcopy(job.meta)
+        meta.pop('interval', None)
+        meta.pop('run_count', None)
+        meta.pop('max_runs', None)
+
+        params = {
+            'func': job.func,
+            'args': job.args,
+            'kwargs': job.kwargs,
+            'connection': job.connection,
+            'result_ttl': job.result_ttl,
+            'ttl': job.ttl,
+            'id': self.repeat_job_id(job),
+            'origin': job.origin,
+            'meta': meta,
+        }
+
+        repeat_job = Job.create(**params)
+        repeat_job.parent = job
+        repeat_job.save()
+
+        return repeat_job
+
+    def handle_job_repeat(self, job, queue):
+        repeat_job = self.make_repeat_job(job)
+        self.log.info("Enqueuing job {} to queue {}".format(
+                      repeat_job.id, repeat_job.origin))
+
+        queue.enqueue_job(repeat_job)
+
+        job.meta['run_count'] += 1
+
+        if self.should_repeat_job(job):
+            self.log.info("Scheduling job {} to repeat in {}".format(
+                          job.id, job.meta['interval']))
+            self.delay_job(job, job.meta['interval'])
+            job.save()
+        else:
+            self.log.info("Removing job {} from scheduler".format(job.id))
+            self.remove_job(job.id)
+
+        return repeat_job
+
+    def is_repeat(self, job):
+        return 'interval' in job.meta
+
     def enqueue_jobs(self):
         self.log.info('Checking for scheduled jobs...')
 
         jobs = self.get_jobs_to_queue(to_unix(self.current_time()))
 
         for job in jobs:
-            self.log.info(
-                "Enqueuing job {} to queue {}".format(job.id, job.origin))
             queue = self.get_queue(job.origin)
-            queue.enqueue_job(job)
-            self.remove_job(job.id)
+            if self.is_repeat(job):
+                self.handle_job_repeat(job, queue)
+            else:
+                self.log.info(
+                    "Enqueuing job {} to queue {}".format(job.id, job.origin))
+                queue.enqueue_job(job)
+                self.remove_job(job.id)
 
     def run(self, burst=False):
         self.log.info('Starting RQ Retry Scheduler..')
