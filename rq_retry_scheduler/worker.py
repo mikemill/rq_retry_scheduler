@@ -38,7 +38,7 @@ class Worker(rq.Worker):
         job.meta['failures'] += 1
 
         self.log.info("Job {}: Exception handler with {} failures".format(
-                        job.id, job.meta['failures']))
+                      job.id, job.meta['failures']))
 
         delay = self.retry_delays.get(job.meta['failures'])
 
@@ -49,7 +49,7 @@ class Worker(rq.Worker):
             return True
 
         self.log.info("Job {}: Requeueing in {} into queue {}".format(
-                       job.id, delay, job.origin))
+                      job.id, delay, job.origin))
 
         queue = self.queue_class(job.origin, connection=self.connection)
         queue.enqueue_job_in(delay, job)

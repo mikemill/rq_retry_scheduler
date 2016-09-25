@@ -1,9 +1,8 @@
 # Development pip requirements
 rq
 pytest>=3.0.2
-pytest-pep8
 pytest-cov
 pytest-mock
 pytest-env
-pytest-flakes
+pytest-flake8
 coveralls
