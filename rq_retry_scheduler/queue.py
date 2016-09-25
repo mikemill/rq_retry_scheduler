@@ -45,7 +45,7 @@ class Queue(rq.Queue):
         enqueue_at = job.meta.pop('enqueue_at', None)
 
         if not enqueue_at:
-            return super().enqueue_job(job, pipeline, at_front)
+            return super(Queue, self).enqueue_job(job, pipeline, at_front)
 
         self.schedule_job(job, enqueue_at)
 
