@@ -27,8 +27,8 @@ class Worker(rq.Worker):
                 q(queue.name) if isinstance(queue, rq.Queue) else queue
                 for queue in rq.utils.ensure_list(queues)]
 
-        super().__init__(queues, *args, queue_class=queue_class,
-                         connection=connection, **kwargs)
+        super(Worker, self).__init__(queues, *args, queue_class=queue_class,
+                                     connection=connection, **kwargs)
 
         self.log = logger
         self.push_exc_handler(self.exc_handler)
