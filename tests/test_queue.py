@@ -192,3 +192,26 @@ def test_unschedule_job(queue):
     queue.unschedule_job(job2.id)
 
     assert job2 not in queue
+
+
+def test_repeat_job(queue):
+    td = timedelta(seconds=1)
+    job = queue.enqueue_in(td, target_function)
+    assert queue.repeat_job(job, td) is job
+
+    j2 = Job.fetch(job.id, connection=job.connection)
+    assert job == j2
+    assert j2.meta['interval'] == td
+    assert j2.meta['max_runs'] is None
+    assert j2.meta['run_count'] == 0
+
+
+def test_repeat_job_not_in_queue(queue, mock):
+    td = timedelta(seconds=1)
+
+    job = Job.create(target_function, connection=queue.connection)
+    s = mock.spy(queue, 'enqueue_job_in')
+
+    queue.repeat_job(job, td)
+    assert job in queue
+    s.assert_called_with(td, job)
