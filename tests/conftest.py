@@ -34,6 +34,15 @@ def queue(connection):
 
 
 @pytest.yield_fixture
+def queue2(connection):
+    q = Queue('unittest2', connection=connection)
+    try:
+        yield q
+    finally:
+        q.current_time = datetime.utcnow
+
+
+@pytest.yield_fixture
 def scheduler(connection):
     s = Scheduler('unittest', connection=connection)
     try:
