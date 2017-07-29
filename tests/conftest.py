@@ -21,7 +21,7 @@ def connection(redis_db_num):
     try:
         yield conn
     finally:
-        conn.flushall()
+        conn.flushdb()
 
 
 @pytest.yield_fixture

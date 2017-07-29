@@ -118,7 +118,7 @@ def test_schedule_job(mock, queue, connection):
     queue.schedule_job(job, dt)
 
     zadd.assert_called_with(queue.scheduler_jobs_key, util.to_unix(dt), job.id)
-    save.assert_called()
+    assert save.called
 
 
 def test_enqueue_job(mock, queue, connection):
