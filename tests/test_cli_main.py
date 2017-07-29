@@ -1,4 +1,5 @@
 from argparse import Namespace
+from datetime import datetime
 import logging
 from redis import StrictRedis
 
@@ -34,7 +35,8 @@ def test_setup_logging():
 
 
 def test_main(mock):
-    args = Namespace(url='redis://localhost/15', interval=5, burst=False)
+    args = Namespace(url='redis://localhost/15', interval=5,
+                     burst=False, info=False)
 
     mock.patch.object(scheduler, 'get_arguments', return_value=args)
     init = mock.spy(Scheduler, '__init__')
@@ -55,9 +57,28 @@ def test_get_arguments():
     assert args.url is None
     assert args.interval == 10.0
     assert args.burst is False
+    assert args.info is False
 
 
 def test_burst_flag():
     fake_arguments = ['-b']
     args = scheduler.get_arguments(fake_arguments)
     assert args.burst is True
+
+
+def test_info(mock):
+    args = Namespace(
+        url='redis://localhost/15',
+        info=True,
+        interval=5)
+
+    mock.patch.object(scheduler, 'get_arguments', return_value=args)
+    run = mock.patch.object(Scheduler, 'run')
+    info = mock.spy(scheduler, 'info')
+    mock.patch.object(Scheduler, 'schedule',
+                      return_value=[(None, datetime.utcnow())])
+
+    scheduler.main()
+
+    assert not run.called
+    assert info.called
