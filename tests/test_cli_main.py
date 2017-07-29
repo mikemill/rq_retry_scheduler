@@ -1,4 +1,5 @@
 from argparse import Namespace
+from datetime import datetime
 import logging
 from redis import StrictRedis
 
@@ -73,7 +74,9 @@ def test_info(mock):
 
     mock.patch.object(scheduler, 'get_arguments', return_value=args)
     run = mock.patch.object(Scheduler, 'run')
-    info = mock.patch.object(scheduler, 'info')
+    info = mock.spy(scheduler, 'info')
+    mock.patch.object(Scheduler, 'schedule',
+                      return_value=[(None, datetime.utcnow())])
 
     scheduler.main()
 
