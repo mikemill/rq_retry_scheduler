@@ -27,6 +27,11 @@ def test_setup_logging():
     assert logger.getEffectiveLevel() == logging.INFO
     assert len(logger.handlers) > 0
 
+    args = Namespace(loglevel='ERROR')
+    logger = scheduler.setup_logging(args)
+
+    assert logger.getEffectiveLevel() == logging.ERROR
+
 
 def test_main(mock):
     args = Namespace(url='redis://localhost/15', interval=5, burst=False)
