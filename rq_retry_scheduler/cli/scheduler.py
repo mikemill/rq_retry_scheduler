@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import argparse
 import logging
 import os
@@ -43,6 +45,9 @@ def get_arguments(args=None):
         '-i', '--interval', help='Scheduler polling interval (in seconds)',
         default=10.0, type=float)
 
+    parser.add_argument('--info', help="Display information and then quit",
+                        action="store_true")
+
     return parser.parse_args(args)
 
 
@@ -66,9 +71,24 @@ def setup_logging(args):
     return logger
 
 
+def info(scheduler):
+    """Show some stats and then quit"""
+    jobs = scheduler.schedule()
+    num_jobs = len(jobs)
+    print("Number of jobs scheduled:", num_jobs)
+
+    if num_jobs:
+        next_job = jobs[0][1]
+        print("Next job to be queued at:", next_job)
+
+
 def main():
     args = get_arguments()
     setup_logging(args)
     connection = get_redis(args)
     scheduler = Scheduler(connection=connection, interval=args.interval)
-    scheduler.run(args.burst)
+
+    if args.info:
+        info(scheduler)
+    else:
+        scheduler.run(args.burst)
