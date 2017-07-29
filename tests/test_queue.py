@@ -159,12 +159,15 @@ def test_contains(queue, connection):
     assert 'foobar' not in queue
 
 
-def test_scheduled_jobs(queue):
+def test_scheduled_jobs(queue, queue2):
     args = list(range(0, 10))
 
     queued_jobs = [
         queue.enqueue_in(timedelta(seconds=arg), target_function, arg)
         for arg in args]
+
+    [queue2.enqueue_in(timedelta(seconds=arg), target_function, arg)
+     for arg in args]
 
     jobs = list(queue.scheduled_jobs())
 

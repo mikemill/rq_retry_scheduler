@@ -71,8 +71,11 @@ class Queue(rq.Queue):
             self.scheduler_jobs_key, 0, num_jobs)
 
         for job_id in job_ids:
-            yield self.job_class.fetch(
+            job = self.job_class.fetch(
                 job_id.decode('utf-8'), connection=self.connection)
+
+            if job.origin == self.name:
+                yield job
 
     def __contains__(self, job):
         try:
