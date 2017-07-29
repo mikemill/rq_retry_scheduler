@@ -132,6 +132,15 @@ class Scheduler(object):
                 queue.enqueue_job(job)
                 self.remove_job(job.id)
 
+    def schedule(self):
+        """Returns the job ids and when they are scheduled to be queued"""
+        data = self.connection.zrange(
+            self.scheduler_jobs_key, 0, -1, withscores=True)
+
+        return [
+            (job_id, datetime.utcfromtimestamp(ts))
+            for job_id, ts in data]
+
     def run(self, burst=False):
         self.log.info('Starting RQ Retry Scheduler..')
 
