@@ -259,3 +259,19 @@ def test_make_repat_job(scheduler):
     assert repeat_job.func == job.func
     assert repeat_job.args == job.args
     assert repeat_job.kwargs == job.kwargs
+
+
+def test_schedule(scheduler, mock, connection):
+    assert scheduler.schedule() == []
+
+    dt = datetime.utcnow().replace(microsecond=0)
+    scheduler.current_time = lambda: dt
+
+    job_id = b'unittest'
+
+    ret = [(job_id, to_unix(dt))]
+    mock.patch.object(connection, 'zrange', return_value=ret)
+
+    expected = [(job_id, dt)]
+
+    assert scheduler.schedule() == expected
