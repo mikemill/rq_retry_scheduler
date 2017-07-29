@@ -118,7 +118,7 @@ class Scheduler(object):
         return 'interval' in job.meta
 
     def enqueue_jobs(self):
-        self.log.info('Checking for scheduled jobs...')
+        self.log.debug('Checking for scheduled jobs...')
 
         jobs = self.get_jobs_to_queue(to_unix(self.current_time()))
 

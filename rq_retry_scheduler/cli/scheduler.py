@@ -43,6 +43,10 @@ def get_arguments(args=None):
         '-i', '--interval', help='Scheduler polling interval (in seconds)',
         default=10.0, type=float)
 
+    parser.add_argument('--loglevel', help="Logging level",
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR',
+                                 'CRITICAL'])
+
     return parser.parse_args(args)
 
 
@@ -57,7 +61,7 @@ def get_redis(args):
 
 def setup_logging(args):
     logger = logging.getLogger('rq:retryscheduler:scheduler')
-    logger.setLevel('INFO')
+    logger.setLevel(vars(args).get('loglevel', 'INFO'))
     formatter = logging.Formatter(fmt='%(asctime)s %(message)s',
                                   datefmt='%H:%M:%S')
     handler = ColorizingStreamHandler()
