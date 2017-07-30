@@ -10,3 +10,5 @@ install:
 uninstall:
 	echo "files.txt" | cat - files.txt | xargs rm
 	rm -r dist build rq_retry_scheduler.egg-info
+
+reinstall: uninstall install

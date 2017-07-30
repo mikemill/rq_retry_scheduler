@@ -3,4 +3,6 @@ skip_covered = True
 show_missing = True
 
 [run]
-omit = tests/*
+omit =
+    tests/*
+    rq_retry_scheduler/cli/*

@@ -2,97 +2,77 @@
 
 from __future__ import print_function
 
-import argparse
+import click
 import logging
-import os
-from redis import StrictRedis
+from rq.cli import cli as rqcli
+from rq.cli import helpers
 from rq.utils import ColorizingStreamHandler
 
 from rq_retry_scheduler import Scheduler
 
 
-def get_arguments(args=None):
-    parser = argparse.ArgumentParser(description='RQ Retry Scheduler')
-
-    # Redis connection
-    parser.add_argument(
-        '-H', '--host', help='Redis host',
-        default=os.environ.get('RQ_REDIS_HOST', 'localhost'))
-
-    parser.add_argument(
-        '-p', '--port', help='Redis port', type=int,
-        default=int(os.environ.get('RQ_REDIS_PORT', 6379)))
-
-    parser.add_argument(
-        '-d', '--db', help='Redis database', type=int,
-        default=int(os.environ.get('RQ_REDIS_DB', 0)))
-
-    parser.add_argument(
-        '-P', '--password', help='Redis password',
-        default=os.environ.get('RQ_REDIS_PASSWORD'))
-
-    parser.add_argument(
-        '-u', '--url',
-        default=os.environ.get('RQ_REDIS_URL'),
-        help='URL describing Redis connection details. '
-             'Overrides other connection arguments if supplied.')
-
-    parser.add_argument(
-        '-b', '--burst', action='store_true',
-        help='Burst mode. Move any jobs and quit')
-
-    parser.add_argument(
-        '-i', '--interval', help='Scheduler polling interval (in seconds)',
-        default=10.0, type=float)
-
-    parser.add_argument('--info', help="Display information and then quit",
-                        action="store_true")
-
-    parser.add_argument('--loglevel', help="Logging level",
-                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR',
-                                 'CRITICAL'])
-
-    return parser.parse_args(args)
+@click.group()
+def main():
+    """RQ Retry Scheduler command line tool."""
 
 
-def get_redis(args):
-    if args.url:
-        connection = StrictRedis.from_url(args.url)
-    else:
-        connection = StrictRedis(args.host, args.port, args.db, args.password)
+@main.command()
+@rqcli.url_option
+@rqcli.config_option
+@click.option('--burst', '-b', is_flag=True,
+              help="Burst Mode. Move any jobs and quit")
+@click.option('--interval', '-i', type=float, default=10.0,
+              help="Scheduler polling interval (in seconds)")
+@click.option('--loglevel', help="Logging level", default='INFO',
+              type=click.Choice([
+                  'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']))
+def run(url, config, burst, interval, loglevel):
+    conn = rqcli.connect(url, config)
+    setup_logging(loglevel)
+    scheduler = Scheduler(connection=conn, interval=interval)
+    scheduler.run(burst)
 
-    return connection
+
+@main.command()
+@rqcli.url_option
+@rqcli.config_option
+@click.option('--rq/--no-rq', default=True, help="Show RQ info data")
+@click.pass_context
+def info(ctx, url, config, rq):
+    conn = rqcli.connect(url, config)
+
+    if rq:
+        ctx.invoke(rqcli.info, url=url, config=config)
+        click.echo('')
+
+    scheduler = Scheduler(connection=conn)
+    jobs = scheduler.schedule()
+    num_jobs = len(jobs)
+
+    termwidth, _ = click.get_terminal_size()
+    chartwidth = min(20, termwidth - 20)
+
+    scale = helpers.get_scale(num_jobs)
+    ratio = chartwidth * 1.0 / scale
+
+    chart = helpers.green('|' + '█' * int(ratio * num_jobs))
+    line = 'Scheduled: {:s} {:d}'.format(chart, num_jobs)
+    click.echo(line)
+
+    if num_jobs:
+        next_job = jobs[0][1]
+        click.echo("Next job to be queued at: {:s}".format(str(next_job)))
 
 
-def setup_logging(args):
+main.add_command(rqcli.main, name='rq')
+
+
+def setup_logging(loglevel):
     logger = logging.getLogger('rq:retryscheduler:scheduler')
-    logger.setLevel(vars(args).get('loglevel', 'INFO'))
+    logger.setLevel(loglevel)
     formatter = logging.Formatter(fmt='%(asctime)s %(message)s',
                                   datefmt='%H:%M:%S')
     handler = ColorizingStreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
-
-
-def info(scheduler):
-    """Show some stats and then quit"""
-    jobs = scheduler.schedule()
-    num_jobs = len(jobs)
-    print("Number of jobs scheduled:", num_jobs)
-
-    if num_jobs:
-        next_job = jobs[0][1]
-        print("Next job to be queued at:", next_job)
-
-
-def main():
-    args = get_arguments()
-    setup_logging(args)
-    connection = get_redis(args)
-    scheduler = Scheduler(connection=connection, interval=args.interval)
-
-    if args.info:
-        info(scheduler)
-    else:
-        scheduler.run(args.burst)
