@@ -20,7 +20,8 @@ Additionally, two other methods are available `enqueue_job_at` and `enqueue_job_
 
 ### Getting list of jobs
 
-`Queue.scheduled_jobs` is a generator that produces the jobs that are currently scheduled.
+`Queue.scheduled_jobs` is a generator that produces the jobs that are currently scheduled for a particular queue.  
+`Scheduler.schedule` returns a list of job ids and scheduled time.
 
 ### Checking if a job is scheduled
 
