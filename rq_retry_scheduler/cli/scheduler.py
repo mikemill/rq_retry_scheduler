@@ -8,7 +8,6 @@ from functools import partial
 import logging
 from rq.cli import cli as rqcli
 from rq.cli import helpers
-from rq.job import Job
 from rq.utils import ColorizingStreamHandler
 
 from rq_retry_scheduler import Scheduler
@@ -79,19 +78,23 @@ def list(url, config):
 
     now = datetime.utcnow()
 
+    jobs = scheduler.schedule(fetch_jobs=True)
+
+    queue_name_length = max(len(job.origin) for job, _ in jobs)
+
     cyan = partial(click.style, fg='cyan')
 
-    for job_id, time in scheduler.schedule():
-        job_id = job_id.decode('UTF-8')
-        job = Job.fetch(job_id, connection=conn)
+    width = queue_name_length + len(cyan(''))
 
+    for job, time in jobs:
         if time <= now:
             color = helpers.red
         else:
             color = helpers.green
 
-        line = '{:s} {:s} {:s}'.format(color(str(time)), job_id,
-                                       cyan(job.description))
+        line = '{:s} {:s} {: <{width}}\t{:s}'.format(
+            color(str(time)), job.id,
+            cyan(job.origin), job.description, width=width)
         click.echo(line)
 
 
