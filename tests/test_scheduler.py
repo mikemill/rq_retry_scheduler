@@ -275,3 +275,22 @@ def test_schedule(scheduler, mock, connection):
     expected = [(job_id, dt)]
 
     assert scheduler.schedule() == expected
+
+
+def test_schedule_fetch_job(scheduler, mock, connection):
+    assert scheduler.schedule() == []
+
+    dt = datetime.utcnow().replace(microsecond=0)
+    scheduler.current_time = lambda: dt
+
+    job_id = b'unittest'
+
+    ret = [(job_id, to_unix(dt))]
+    mock.patch.object(connection, 'zrange', return_value=ret)
+
+    job = Job(connection=connection)
+    mock.patch.object(Job, 'fetch', return_value=job)
+
+    expected = [(job, dt)]
+
+    assert scheduler.schedule(fetch_jobs=True) == expected

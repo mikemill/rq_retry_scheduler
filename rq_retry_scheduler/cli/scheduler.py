@@ -3,6 +3,8 @@
 from __future__ import print_function
 
 import click
+from datetime import datetime
+from functools import partial
 import logging
 from rq.cli import cli as rqcli
 from rq.cli import helpers
@@ -27,6 +29,7 @@ def main():
               type=click.Choice([
                   'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']))
 def run(url, config, burst, interval, loglevel):
+    """Run the RQ Retry Scheduler"""
     conn = rqcli.connect(url, config)
     setup_logging(loglevel)
     scheduler = Scheduler(connection=conn, interval=interval)
@@ -39,6 +42,7 @@ def run(url, config, burst, interval, loglevel):
 @click.option('--rq/--no-rq', default=True, help="Show RQ info data")
 @click.pass_context
 def info(ctx, url, config, rq):
+    """Get information about the RQ Schedule"""
     conn = rqcli.connect(url, config)
 
     if rq:
@@ -62,6 +66,36 @@ def info(ctx, url, config, rq):
     if num_jobs:
         next_job = jobs[0][1]
         click.echo("Next job to be queued at: {:s}".format(str(next_job)))
+
+
+@main.command()
+@rqcli.url_option
+@rqcli.config_option
+def list(url, config):
+    """List out all the scheduled jobs"""
+    conn = rqcli.connect(url, config)
+    scheduler = Scheduler(connection=conn)
+
+    now = datetime.utcnow()
+
+    jobs = scheduler.schedule(fetch_jobs=True)
+
+    queue_name_length = max(len(job.origin) for job, _ in jobs)
+
+    cyan = partial(click.style, fg='cyan')
+
+    width = queue_name_length + len(cyan(''))
+
+    for job, time in jobs:
+        if time <= now:
+            color = helpers.red
+        else:
+            color = helpers.green
+
+        line = '{:s} {:s} {: <{width}}\t{:s}'.format(
+            color(str(time)), job.id,
+            cyan(job.origin), job.description, width=width)
+        click.echo(line)
 
 
 main.add_command(rqcli.main, name='rq')

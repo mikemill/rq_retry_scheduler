@@ -44,7 +44,7 @@ def queue2(connection):
 
 @pytest.yield_fixture
 def scheduler(connection):
-    s = Scheduler('unittest', connection=connection)
+    s = Scheduler(connection=connection)
     try:
         yield s
     finally:
