@@ -23,6 +23,8 @@ class Queue(rq.Queue):
         self.connection._zadd(
             self.scheduler_jobs_key, util.to_unix(enqueue_dt), job.id)
 
+        job.meta['scheduled_for'] = enqueue_dt
+
         job.save()
 
     def enqueue_at(self, scheduled_at, func, *args, **kwargs):
