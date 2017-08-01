@@ -80,22 +80,29 @@ def list(url, config):
 
     jobs = scheduler.schedule(fetch_jobs=True)
 
-    queue_name_length = max(len(job.origin) for job, _ in jobs)
+    if jobs:
+        queue_name_length = max(10, *(len(job.origin) for job, _ in jobs))
 
-    cyan = partial(click.style, fg='cyan')
+        cyan = partial(click.style, fg='cyan')
 
-    width = queue_name_length + len(cyan(''))
+        width = queue_name_length + len(cyan(''))
 
-    for job, time in jobs:
-        if time <= now:
-            color = helpers.red
-        else:
-            color = helpers.green
+        click.echo('{: ^19} {: ^36} {: ^{width}}   {:s}'.format(
+            'Queue Time', 'Job ID', 'Queue Name', 'Description',
+            width=queue_name_length))
 
-        line = '{:s} {:s} {: <{width}}\t{:s}'.format(
-            color(str(time)), job.id,
-            cyan(job.origin), job.description, width=width)
-        click.echo(line)
+        for job, time in jobs:
+            if time <= now:
+                color = helpers.red
+            else:
+                color = helpers.green
+
+            line = '{:s} {:s} {: <{width}}   {:s}'.format(
+                color(str(time)), job.id,
+                cyan(job.origin), job.description, width=width)
+            click.echo(line)
+    else:
+        click.echo("No jobs scheduled")
 
 
 main.add_command(rqcli.main, name='rq')
