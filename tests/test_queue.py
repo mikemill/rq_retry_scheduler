@@ -119,6 +119,7 @@ def test_schedule_job(mock, queue, connection):
 
     zadd.assert_called_with(queue.scheduler_jobs_key, util.to_unix(dt), job.id)
     assert save.called
+    assert job.meta.get('scheduled_for') == dt
 
 
 def test_enqueue_job(mock, queue, connection):
