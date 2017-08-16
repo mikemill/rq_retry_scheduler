@@ -12,3 +12,9 @@ uninstall:
 	rm -r dist build rq_retry_scheduler.egg-info
 
 reinstall: uninstall install
+
+build: rq_retry_scheduler/*.py rq_retry_scheduler/cli/*.py
+	bin/python setup.py sdist bdist_wheel --universal
+
+upload: build
+	bin/twine upload dist/*
