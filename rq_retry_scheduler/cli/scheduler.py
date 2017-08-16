@@ -6,11 +6,26 @@ import click
 from datetime import datetime
 from functools import partial
 import logging
+from redis import StrictRedis
 from rq.cli import cli as rqcli
 from rq.cli import helpers
 from rq.utils import ColorizingStreamHandler
 
 from rq_retry_scheduler import Scheduler
+
+
+url_option = click.option('--url', '-u', envvar='RQ_REDIS_URL',
+                          help='URL describing Redis connection details.')
+config_option = click.option('--config', '-c', envvar='RQ_CONFIG',
+                             help='Module containing RQ settings.')
+
+
+def connect(url, config=None, connection_class=StrictRedis):
+    if url:
+        return connection_class.from_url(url)
+
+    settings = read_config_file(config) if config else {}
+    return helpers.get_redis_from_config(settings, connection_class)
 
 
 @click.group()
@@ -19,8 +34,8 @@ def main():
 
 
 @main.command()
-@rqcli.url_option
-@rqcli.config_option
+@url_option
+@config_option
 @click.option('--burst', '-b', is_flag=True,
               help="Burst Mode. Move any jobs and quit")
 @click.option('--interval', '-i', type=float, default=10.0,
@@ -30,20 +45,20 @@ def main():
                   'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']))
 def run(url, config, burst, interval, loglevel):
     """Run the RQ Retry Scheduler"""
-    conn = rqcli.connect(url, config)
+    conn = connect(url, config)
     setup_logging(loglevel)
     scheduler = Scheduler(connection=conn, interval=interval)
     scheduler.run(burst)
 
 
 @main.command()
-@rqcli.url_option
-@rqcli.config_option
+@url_option
+@config_option
 @click.option('--rq/--no-rq', default=True, help="Show RQ info data")
 @click.pass_context
 def info(ctx, url, config, rq):
     """Get information about the RQ Schedule"""
-    conn = rqcli.connect(url, config)
+    conn = connect(url, config)
 
     if rq:
         ctx.invoke(rqcli.info, url=url, config=config)
@@ -68,12 +83,12 @@ def info(ctx, url, config, rq):
         click.echo("Next job to be queued at: {:s}".format(str(next_job)))
 
 
-@main.command()
-@rqcli.url_option
-@rqcli.config_option
-def list(url, config):
+@main.command(name='list')
+@url_option
+@config_option
+def list_jobs(url, config):
     """List out all the scheduled jobs"""
-    conn = rqcli.connect(url, config)
+    conn = connect(url, config)
     scheduler = Scheduler(connection=conn)
 
     now = datetime.utcnow()
