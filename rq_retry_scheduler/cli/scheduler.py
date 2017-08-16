@@ -24,7 +24,7 @@ def connect(url, config=None, connection_class=StrictRedis):
     if url:
         return connection_class.from_url(url)
 
-    settings = read_config_file(config) if config else {}
+    settings = helpers.read_config_file(config) if config else {}
     return helpers.get_redis_from_config(settings, connection_class)
 
 
