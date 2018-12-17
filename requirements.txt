@@ -1,5 +1,5 @@
 # Development pip requirements
-rq
+rq>=0.13
 pytest>=3.0.2
 pytest-cov
 pytest-mock

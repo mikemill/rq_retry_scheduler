@@ -13,7 +13,7 @@ except ImportError:
 
 setup(
     name='rq-retry-scheduler',
-    version='0.1.2',
+    version='0.2.0',
     url='https://github.com/mikemill/rq_retry_scheduler',
     description='RQ Retry and Scheduler',
     long_description=long_description(),
@@ -21,7 +21,7 @@ setup(
     author_email='mikemill@gmail.com',
     packages=find_packages(exclude=['*tests*']),
     license='MIT',
-    install_requires=['rq>=0.6.0'],
+    install_requires=['rq>=0.13'],
     zip_safe=False,
     platforms='any',
     entry_points={

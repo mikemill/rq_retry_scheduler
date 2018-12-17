@@ -20,8 +20,8 @@ class Queue(rq.Queue):
         logger.info('Queuing job {0:s} to run at {1:s}'.format(
             job.id, str(enqueue_dt)))
 
-        self.connection._zadd(
-            self.scheduler_jobs_key, util.to_unix(enqueue_dt), job.id)
+        self.connection.zadd(
+            self.scheduler_jobs_key, {job.id: util.to_unix(enqueue_dt)})
 
         job.meta['scheduled_for'] = enqueue_dt
 
