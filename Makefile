@@ -1,5 +1,6 @@
 test:
-	py.test --flake8 --cov=rq_retry_scheduler --cov-config .coveragerc
+	py.test --cov=rq_retry_scheduler --cov-config .coveragerc
+	git ls-files '*.py' | xargs flake8
 
 coverage-html:
 	coverage html -d coverage_html

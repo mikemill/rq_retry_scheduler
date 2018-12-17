@@ -6,7 +6,7 @@ import click
 from datetime import datetime
 from functools import partial
 import logging
-from redis import StrictRedis
+from redis import Redis
 from rq.cli import cli as rqcli
 from rq.cli import helpers
 from rq.utils import ColorizingStreamHandler
@@ -20,7 +20,7 @@ config_option = click.option('--config', '-c', envvar='RQ_CONFIG',
                              help='Module containing RQ settings.')
 
 
-def connect(url, config=None, connection_class=StrictRedis):
+def connect(url, config=None, connection_class=Redis):
     if url:
         return connection_class.from_url(url)
 

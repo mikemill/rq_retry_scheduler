@@ -59,7 +59,7 @@ class Scheduler(object):
 
     def delay_job(self, job, time_delta):
         amount = int(time_delta.total_seconds())
-        self.connection.zincrby(self.scheduler_jobs_key, job.id, amount)
+        self.connection.zincrby(self.scheduler_jobs_key, amount, job.id)
 
     def should_repeat_job(self, job):
         max_runs = job.meta['max_runs']

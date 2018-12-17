@@ -108,7 +108,7 @@ def test_enqueue_job_in(mock, queue, connection):
 
 
 def test_schedule_job(mock, queue, connection):
-    zadd = mock.patch.object(connection, '_zadd')
+    zadd = mock.patch.object(connection, 'zadd')
 
     job = Job.create(target_function, connection=connection)
 
@@ -117,7 +117,8 @@ def test_schedule_job(mock, queue, connection):
 
     queue.schedule_job(job, dt)
 
-    zadd.assert_called_with(queue.scheduler_jobs_key, util.to_unix(dt), job.id)
+    zadd.assert_called_with(
+        queue.scheduler_jobs_key, {job.id: util.to_unix(dt)})
     assert save.called
     assert job.meta.get('scheduled_for') == dt
 

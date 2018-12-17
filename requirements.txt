@@ -1,9 +1,9 @@
 # Development pip requirements
-rq
+flake8
+rq>=0.13
 pytest>=3.0.2
 pytest-cov
 pytest-mock
 pytest-env
-pytest-flake8
 coveralls
 pytz; python_version <= '2.7'
