@@ -13,7 +13,7 @@ except ImportError:
 
 setup(
     name='rq-retry-scheduler',
-    version='0.2.0',
+    version='0.2.1',
     url='https://github.com/mikemill/rq_retry_scheduler',
     description='RQ Retry and Scheduler',
     long_description=long_description(),

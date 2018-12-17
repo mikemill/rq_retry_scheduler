@@ -19,3 +19,6 @@ build: rq_retry_scheduler/*.py rq_retry_scheduler/cli/*.py
 
 upload: build
 	bin/twine upload dist/*
+
+upload-test: build
+	bin/twine upload --repository-url https://test.pypi.org/legacy/ dist/*
